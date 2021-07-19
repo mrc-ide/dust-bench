@@ -64,7 +64,11 @@ timing <- function(n_registers) {
   n_particles_1wave <- NULL # 52840
   n_particles <- c(2^(13:17), n_particles_1wave)
 
-  block_size <- seq(32, 65536 / n_registers, by = 32)
+  if (n_registers == 96) {
+    block_size <- seq(32, 640, by = 32)
+  } else {
+    block_size <- seq(32, 65536 / n_registers, by = 32)
+  }
   n_steps <- 4
 
   pars <- expand.grid(device = gpu$devices$name[[1]],
