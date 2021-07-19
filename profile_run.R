@@ -24,6 +24,7 @@ do_run <- function(n_registers, block_size, n_particles) {
   mod <- carehomes_gpu_init(gen, block_size, n_particles, device_id)
   res <- mod$run(4, device = TRUE)
   end <- 4 + n_steps
+  mod$run(4 + n_steps, device = TRUE)
 }
 
 
