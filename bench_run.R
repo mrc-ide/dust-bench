@@ -41,12 +41,12 @@ timing1 <- function(gen, block_size, n_particles, n_steps, device_id = 0L) {
 timing <- function(n_registers) {
   version <- paste0("v", packageVersion("sircovid"))
   if (is.na(n_registers)) {
-    workdir <- sprintf("%s-unconstrained", version)
+    workdir <- sprintf("src/%s-unconstrained", version)
     flags <- NULL
     message("n_registers: 256 (unconstrained)")
     n_registers <- 256
   } else {
-    workdir <- sprintf("%s-%s", version, n_registers)
+    workdir <- sprintf("src/%s-%s", version, n_registers)
     flags <- sprintf("--maxrregcount %s", n_registers)
     message("n_registers: ", n_registers)
   }
