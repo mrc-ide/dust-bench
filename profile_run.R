@@ -25,6 +25,7 @@ do_run <- function(n_registers, block_size, n_particles) {
   res <- mod$run(4, device = TRUE)
   end <- 4 + n_steps
   mod$run(4 + n_steps, device = TRUE)
+  invisible()
 }
 
 
