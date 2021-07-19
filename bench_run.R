@@ -85,10 +85,10 @@ main <- function(args = commandArgs(TRUE)) {
   "Usage:
 bench_run.R <n_registers>" -> usage
   opts <- docopt::docopt(usage, args)
+  res <- timing(opts$n_registers)
   device_str <- gsub(" ", "-", tolower(res$device[[1]]))
   filename <- sprintf("run/%s-%s.rds", device_str, opts$n_registers)
   dir.create(dirname(filename), FALSE, TRUE)
-  res <- timing(opts$n_registers)
   saveRDS(res, filename)
 }
 
