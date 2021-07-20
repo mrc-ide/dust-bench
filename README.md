@@ -47,7 +47,28 @@ To profile:
 
 ```
 mkdir -p profile/run
-ncu -o profile/run/A5000-96-512-65536 \
+DEVICE=G3090
+
+ncu -o profile/run/$DEVICE-64-512-65536 \
+  --kernel-id ::run_particles:2  --set full --target-processes all \
+  Rscript profile_run.R --n-registers=64 --block-size=512 --n-particles=65536
+ncu -o profile/run/$DEVICE-96-512-65536 \
   --kernel-id ::run_particles:2  --set full --target-processes all \
   Rscript profile_run.R --n-registers=96 --block-size=512 --n-particles=65536
+ncu -o profile/run/$DEVICE-128-512-65536 \
+  --kernel-id ::run_particles:2  --set full --target-processes all \
+  Rscript profile_run.R --n-registers=128 --block-size=512 --n-particles=65536
+ncu -o profile/run/$DEVICE-256-256-65536 \
+  --kernel-id ::run_particles:2  --set full --target-processes all \
+  Rscript profile_run.R --n-registers=256 --block-size=256 --n-particles=65536
+
+ncu -o profile/run/$DEVICE-64-256-65536 \
+  --kernel-id ::run_particles:2  --set full --target-processes all \
+  Rscript profile_run.R --n-registers=64 --block-size=256 --n-particles=65536
+ncu -o profile/run/$DEVICE-96-256-65536 \
+  --kernel-id ::run_particles:2  --set full --target-processes all \
+  Rscript profile_run.R --n-registers=96 --block-size=256 --n-particles=65536
+ncu -o profile/run/$DEVICE-128-256-65536 \
+  --kernel-id ::run_particles:2  --set full --target-processes all \
+  Rscript profile_run.R --n-registers=128 --block-size=256 --n-particles=65536
 ```
