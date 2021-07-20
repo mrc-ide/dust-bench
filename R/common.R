@@ -49,3 +49,48 @@ carehomes_gpu_init <- function(gen, block_size, n_particles, device_id = 0L) {
   mod$set_index(index)
   mod
 }
+
+
+basic_gpu <- function(n_registers, clean = FALSE) {
+  version <- paste0("v", packageVersion("sircovid"))
+  if (is.na(n_registers)) {
+    workdir <- sprintf("src/%s-basic-unconstrained", version)
+    flags <- NULL
+    message("n_registers: 256 (unconstrained)")
+    n_registers <- 256
+  } else {
+    workdir <- sprintf("src/%s-basic-%s", version, n_registers)
+    flags <- sprintf("--maxrregcount %s", n_registers)
+    message("n_registers: ", n_registers)
+  }
+  if (clean) {
+    unlink(workdir, recursive = TRUE)
+  }
+  gpu <- dust::dust_cuda_options(flags = flags, fast_math = TRUE,
+                                 profile = TRUE, quiet = FALSE)
+  sircovid::compile_gpu(
+    "basic",
+    verbose = TRUE,
+    real_t = "float",
+    workdir = workdir,
+    gpu = gpu,
+    rewrite_constants = TRUE,
+    substitutions = list(n_age_groups = 17))
+}
+
+
+basic_gpu_init <- function(gen, block_size, n_particles, device_id = 0L) {
+  message(sprintf("block_size: %d, n_particles: %d", block_size, n_particles))
+  p <- sircovid::basic_parameters(sircovid::sircovid_date("2020-02-07"),
+                                  "england")
+  device <- list(device_id = device_id, run_block_size = block_size)
+  mod <- gen$new(p, 0, n_particles, seed = 1L, n_threads = 10L,
+                 device_config = device)
+
+  end <- sircovid::sircovid_date("2020-07-31") / p$dt
+  info <- mod$info()
+  initial <- sircovid::basic_initial(info, n_particles, p)
+  mod$set_state(initial$state, 0)
+  mod$set_index(sircovid::basic_index(info)$run)
+  mod
+}
