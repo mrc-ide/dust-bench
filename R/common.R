@@ -14,7 +14,8 @@ carehomes_gpu <- function(n_registers, clean = FALSE) {
     unlink(workdir, recursive = TRUE)
   }
   gpu <- dust::dust_cuda_options(flags = flags, fast_math = TRUE,
-                                 profile = TRUE, quiet = FALSE)
+                                 profile = FALSE, quiet = FALSE,
+                                 debug = TRUE)
   sircovid::compile_gpu(
     verbose = TRUE,
     real_t = "float",
@@ -100,4 +101,9 @@ basic_init <- function(gen, block_size, n_particles, device_id = 0L) {
   mod$set_state(initial$state, 0)
   mod$set_index(sircovid::basic_index(info)$run)
   mod
+}
+
+
+read_csv <- function(...) {
+  utils::read.csv(..., check.names = FALSE, stringsAsFactors = FALSE)
 }
