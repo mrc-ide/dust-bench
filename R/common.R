@@ -26,12 +26,19 @@ carehomes_gpu <- function(n_registers, clean = FALSE) {
 }
 
 
-carehomes_gpu_init <- function(gen, block_size, n_particles, device_id = 0L) {
-  message(sprintf("block_size: %d, n_particles: %d", block_size, n_particles))
+carehomes_init <- function(gen, block_size, n_particles, device_id = 0L,
+                           n_threads = 10L) {
   p <- sircovid::carehomes_parameters(sircovid::sircovid_date("2020-02-07"),
                                       "england")
-  device <- list(device_id = device_id, run_block_size = block_size)
-  mod <- gen$new(p, 0, n_particles, seed = 1L, n_threads = 10L,
+  if (is.null(block_size)) {
+    message(sprintf("n_particles: %d, n_threads: %d", n_particles, n_threads))
+    device <- NULL
+  } else {
+    message(sprintf("block_size: %d, n_particles: %d", block_size, n_particles))
+    device <- list(device_id = device_id, run_block_size = block_size)
+  }
+
+  mod <- gen$new(p, 0, n_particles, seed = 1L, n_threads = n_threads,
                    device_config = device)
 
   end <- sircovid::sircovid_date("2020-07-31") / p$dt
@@ -79,7 +86,7 @@ basic_gpu <- function(n_registers, clean = FALSE) {
 }
 
 
-basic_gpu_init <- function(gen, block_size, n_particles, device_id = 0L) {
+basic_init <- function(gen, block_size, n_particles, device_id = 0L) {
   message(sprintf("block_size: %d, n_particles: %d", block_size, n_particles))
   p <- sircovid::basic_parameters(sircovid::sircovid_date("2020-02-07"),
                                   "england")

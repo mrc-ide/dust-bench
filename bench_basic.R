@@ -14,7 +14,7 @@
 source("R/common.R")
 
 timing1 <- function(gen, block_size, n_particles, n_steps, device_id = 0L) {
-  mod <- basic_gpu_init(gen, block_size, n_particles, device_id)
+  mod <- basic_init(gen, block_size, n_particles, device_id)
   res <- mod$run(4, device = TRUE)
   end <- 4 + n_steps
   system.time(mod$run(end, device = TRUE))
@@ -62,8 +62,3 @@ bench_basic.R <n_registers>" -> usage
 if (!interactive()) {
   main()
 }
-
-## 64:  ok to 1024 particles
-## 96:  ok to 640 particles, then dies
-## 128: fine to 512 (didn't test beyond)
-## 256: fine to 256 (didn't test beyond)
