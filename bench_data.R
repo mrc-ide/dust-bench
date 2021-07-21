@@ -2,7 +2,6 @@ source("R/common.R")
 
 timing1 <- function(gen, block_size, n_particles, device_id = 0L) {
   message(sprintf("block_size: %d, n_particles: %d", block_size, n_particles))
-  browser()
 
   dat <- readRDS("data/2021-07-16-london.rds")
   pars <- dat$pars
