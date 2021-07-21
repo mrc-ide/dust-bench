@@ -15,7 +15,7 @@ carehomes_gpu <- function(n_registers, clean = FALSE) {
   }
   gpu <- dust::dust_cuda_options(flags = flags, fast_math = TRUE,
                                  profile = FALSE, quiet = FALSE,
-                                 debug = TRUE)
+                                 debug = FALSE)
   sircovid::compile_gpu(
     verbose = TRUE,
     real_t = "float",
