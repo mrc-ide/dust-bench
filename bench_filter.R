@@ -1,6 +1,7 @@
 source("R/common.R")
 
 timing1 <- function(gen, block_size, n_particles, device_id = 0L) {
+  message(sprintf("block_size: %d, n_particles: %d", block_size, n_particles))
   path <- system.file("extdata/example.csv", package = "sircovid",
                       mustWork = TRUE)
   start_date <- sircovid::sircovid_date("2020-02-02")
