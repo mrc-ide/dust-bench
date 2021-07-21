@@ -36,7 +36,6 @@ timing <- function(n_registers) {
   gen <- carehomes_gpu(n_registers, TRUE)
 
   n_particles <- 2^(13:17)
-  n_particles <- 2^13
 
   if (n_registers == 96) {
     block_size <- seq(32, 640, by = 32)
