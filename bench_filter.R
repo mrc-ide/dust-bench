@@ -29,6 +29,7 @@ timing1 <- function(gen, block_size, n_particles, device_id = 0L) {
   ## anyway, but this timing likely overstates it a bit. Better might
   ## be to run it twice?
   system.time(pf$run(pars))
+  system.time(pf$run(pars))
 }
 
 
