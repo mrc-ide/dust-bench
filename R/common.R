@@ -1,15 +1,8 @@
-carehomes_gpu <- function(n_registers, clean = FALSE) {
+carehomes_gpu <- function(n_registers, clean = FALSE, n_vacc_classes = 1) {
   version <- paste0("v", packageVersion("sircovid"))
-  if (is.na(n_registers)) {
-    workdir <- sprintf("src/%s-unconstrained", version)
-    flags <- NULL
-    message("n_registers: 256 (unconstrained)")
-    n_registers <- 256
-  } else {
-    workdir <- sprintf("src/%s-%s", version, n_registers)
-    flags <- sprintf("--maxrregcount %s", n_registers)
-    message("n_registers: ", n_registers)
-  }
+  workdir <- sprintf("src/%s-%d-%s", version, n_vacc_classes, n_registers)
+  flags <- sprintf("--maxrregcount %s", n_registers)
+  message("n_registers: ", n_registers)
   if (clean) {
     unlink(workdir, recursive = TRUE)
   }
@@ -23,7 +16,7 @@ carehomes_gpu <- function(n_registers, clean = FALSE) {
     gpu = gpu,
     rewrite_constants = TRUE,
     substitutions = list(n_age_groups = 17, n_groups = 19,
-                         n_vacc_classes = 1, n_strains = 1))
+                         n_vacc_classes = n_vacc_classes, n_strains = 1))
 }
 
 
