@@ -105,7 +105,7 @@ bench_filter.R --cpu" -> usage
   opts <- docopt::docopt(usage, args)
   if (opts$cpu) {
     res <- timing_cpu()
-    filename <- "bench/run/cpu.rds"
+    filename <- "bench/filter/cpu.rds"
   } else {
     res <- timing(as.integer(opts$n_registers))
     device_str <- gsub(" ", "-", tolower(res$device[[1]]))
