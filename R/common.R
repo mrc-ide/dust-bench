@@ -7,7 +7,7 @@ carehomes_gpu <- function(n_registers, clean = FALSE, n_vacc_classes = 1) {
     unlink(workdir, recursive = TRUE)
   }
   gpu <- dust::dust_cuda_options(flags = flags, fast_math = TRUE,
-                                 profile = FALSE, quiet = FALSE,
+                                 profile = TRUE, quiet = FALSE,
                                  debug = FALSE)
   sircovid::compile_gpu(
     verbose = TRUE,
