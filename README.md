@@ -71,4 +71,8 @@ ncu -o profile/run/$DEVICE-96-256-65536 \
 ncu -o profile/run/$DEVICE-128-256-65536 \
   --kernel-id ::run_particles:2  --set full --target-processes all \
   Rscript profile_run.R --n-registers=128 --block-size=256 --n-particles=65536
+
+nsys profile -o profile/data/$DEVICE-128-256-65536 \
+  -c cudaProfilerApi --trace cuda,osrt,openmp \
+  Rscript profile_data.R --n-registers=128 --block-size=256 --n-particles=65536
 ```
