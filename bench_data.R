@@ -3,7 +3,7 @@ source("R/common.R")
 timing1 <- function(gen, block_size, n_particles, device_id = 0L) {
   message(sprintf("block_size: %d, n_particles: %d", block_size, n_particles))
 
-  dat <- readRDS("data/2021-07-16-london.rds")
+  dat <- readRDS("data/2021-07-31-london.rds")
   pars <- dat$pars
   steps_per_day <- pars$steps_per_day
   initial_step <- 1
@@ -60,7 +60,7 @@ timing <- function(n_registers) {
 
 
 timing_cpu <- function() {
-  dat <- readRDS("data/2021-07-16-london.rds")
+  dat <- readRDS("data/2021-07-31-london.rds")
   p <- dat$pars
   steps_per_day <- p$steps_per_day
   initial_step <- 1

@@ -22,7 +22,7 @@ do_data <- function(n_registers, block_size, n_particles) {
   n_steps <- 4L
   gen <- carehomes_gpu(n_registers, TRUE, 4L)
 
-  dat <- readRDS("data/2021-07-16-london.rds")
+  dat <- readRDS("data/2021-07-31-london.rds")
   pars <- dat$pars
   steps_per_day <- pars$steps_per_day
   initial_step <- 1
