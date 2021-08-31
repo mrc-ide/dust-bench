@@ -1,4 +1,4 @@
-source("R/new.R")
+source("R/common.R")
 
 main <- function(args = commandArgs(TRUE)) {
   "Usage:
