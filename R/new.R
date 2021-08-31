@@ -51,3 +51,39 @@ model_gpu_create <- function(model, n_registers, clean = FALSE,
     rewrite_constants = TRUE,
     substitutions = subs)
 }
+
+
+model_run_init <- function(gen, n_particles, device_config = NULL,
+                           n_threads = 10L) {
+  model <- gen$public_methods$name()
+  date <- sircovid::sircovid_date("2020-02-07")
+  if (model == "basic") {
+    pars <- sircovid::basic_parameters(date, "england")
+  } else {
+    pars <- sircovid::carehomes_parameters(date, "england")
+  }
+
+  mod <- gen$new(pars, 0, n_particles, seed = 1L, n_threads = n_threads,
+                 device_config = device_config)
+
+  info <- mod$info()
+
+  if (model == "basic") {
+    initial <- sircovid::basic_initial(info, n_particles, pars)
+    index <- sircovid::basic_index(info)$run
+  } else {
+    initial <- sircovid::carehomes_initial(info, n_particles, pars)
+    index <- c(sircovid::carehomes_index(info)$run,
+               deaths_carehomes = info$index[["D_carehomes_tot"]],
+               deaths_comm = info$index[["D_comm_tot"]],
+               deaths_hosp = info$index[["D_hosp_tot"]],
+               admitted = info$index[["cum_admit_conf"]],
+               diagnoses = info$index[["cum_new_conf"]],
+               sympt_cases = info$index[["cum_sympt_cases"]],
+               sympt_cases_over25 = info$index[["cum_sympt_cases_over25"]])
+  }
+
+  mod$set_state(initial$state, 0)
+  mod$set_index(index)
+  mod
+}
