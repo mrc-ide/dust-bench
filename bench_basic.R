@@ -1,16 +1,3 @@
-## Benchmark running model over a short window of time
-##
-## * no time varying parameters
-## * no particle filter
-##
-## To vary:
-##
-## * device
-## * number of registers
-## * block size
-## * number of particles
-## * number of steps
-
 source("R/common.R")
 
 timing1 <- function(gen, block_size, n_particles, n_steps, device_id = 0L) {
@@ -60,5 +47,6 @@ bench_basic.R <n_registers>" -> usage
 }
 
 if (!interactive()) {
+  find_library()
   main()
 }

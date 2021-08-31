@@ -1,3 +1,28 @@
+find_library <- function() {
+  pos <- dir("lib", full.names = TRUE)
+  if (length(pos) > 0L) {
+    lib <- max(pos)
+    message(sprintf("Using library '%s'", lib))
+    .libPaths(lib)
+  }
+}
+
+
+build_library <- function(clean = FALSE) {
+  lib <- sprintf("lib/%s", Sys.Date())
+  if (clean) {
+    unlink(lib, recursive = TRUE)
+  }
+  dir.create(lib, FALSE, TRUE)
+  .libPaths(lib)
+  install.packages(c("dust", "odin.dust", "sircovid", "docopt"),
+                   repos = c(CRAN = "https://cloud.r-project.org",
+                             ncov = "https://ncov-ic.github.io/drat/"))
+  message(sprintf("Created library at '%s'", lib))
+  invisible(lib)
+}
+
+
 carehomes_gpu <- function(n_registers, clean = FALSE, n_vacc_classes = 1) {
   version <- paste0("v", packageVersion("sircovid"))
   workdir <- sprintf("src/%s-%d-%s", version, n_vacc_classes, n_registers)
