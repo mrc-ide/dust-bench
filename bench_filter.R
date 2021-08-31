@@ -2,16 +2,15 @@ source("R/common.R")
 
 main <- function(args = commandArgs(TRUE)) {
   "Usage:
-bench_filter.R [--real-data] <n_registers>" -> usage
+bench_filter.R <data_type> [<n_registers>]" -> usage
   opts <- docopt::docopt(usage, args)
 
-  real_data <- opts$real_data
-  data_type <- if (real_data) "real" else "small"
-  if (opts$cpu) {
-    res <- timing_filter_cpu(real_data)
+  data_type <- opts$data_type
+  if (is.null(opts$n_registers)) {
+    res <- timing_filter_cpu(data_type)
     filename <- sprintf("bench/filter/%s/cpu.rds", data_type)
   } else {
-    res <- timing_filter_gpu(real_data, as.integer(opts$n_registers))
+    res <- timing_filter_gpu(data_type, as.integer(opts$n_registers))
     device_str <- gsub(" ", "-", tolower(res$device[[1]]))
     filename <- sprintf("bench/filter/%s/%s-%s.rds",
                         data_type, device_str, opts$n_registers)
@@ -21,8 +20,8 @@ bench_filter.R [--real-data] <n_registers>" -> usage
 }
 
 
-timing_filter_gpu <- function(real_data, n_registers) {
-  n_vacc_classes <- if (real_data) 4L else 1L
+timing_filter_gpu <- function(data_type, n_registers) {
+  n_vacc_classes <- if (data_type == "real") 4L else 1L
   gen <- model_gpu_create("carehomes", n_registers,
                           n_vacc_classes = n_vacc_classes)
 
@@ -44,7 +43,7 @@ timing_filter_gpu <- function(real_data, n_registers) {
     message(sprintf("block_size: %d, n_particles: %d", block_size, n_particles))
     device_config <- list(device_id = 0L, run_block_size = block_size)
     dat <- create_filter(gen, n_particles,
-                         real_data = real_data,
+                         data_type = data_type,
                          device_config = device_config,
                          n_threads = 10)
     system.time(dat$filter$run(dat$pars))
@@ -57,10 +56,10 @@ timing_filter_gpu <- function(real_data, n_registers) {
 }
 
 
-timing_filter_cpu <- function(real_data) {
+timing_filter_cpu <- function(data_type) {
   timing1 <- function(n_particles, n_threads) {
     dat <- create_filter(sircovid::carehomes, n_particles,
-                         real_data = real_data,
+                         data_type = data_type,
                          device_config = NULL,
                          n_threads = n_threads)
     system.time(dat$filter$run(dat$pars))[["elapsed"]]

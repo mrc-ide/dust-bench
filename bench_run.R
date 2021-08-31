@@ -4,7 +4,7 @@ main <- function(args = commandArgs(TRUE)) {
   "Usage:
 bench_run.R <model> [<n_registers>]" -> usage
   opts <- docopt::docopt(usage, args)
-  model <- args$model
+  model <- opts$model
   if (is.null(opts$n_registers)) {
     res <- timing_run_cpu(model)
     filename <- sprintf("bench/run/%s/cpu.rds", model)

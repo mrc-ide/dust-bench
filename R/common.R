@@ -89,9 +89,9 @@ model_run_init <- function(generator, n_particles, device_config = NULL,
 }
 
 
-create_filter <- function(generator, n_particles, real_data = FALSE,
+create_filter <- function(generator, n_particles, data_type = "small",
                           device_config = NULL, n_threads = 10L) {
-  if (real_data) {
+  if (data_type == "real") {
     dat <- readRDS("data/2021-07-31-london.rds")
     pars <- dat$pars
     data <- dat$data
