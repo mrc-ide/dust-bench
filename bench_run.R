@@ -89,5 +89,6 @@ timing_run_cpu <- function(model) {
 
 
 if (!interactive()) {
+  find_library()
   main()
 }

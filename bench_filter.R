@@ -86,5 +86,6 @@ timing_filter_cpu <- function(data_type) {
 
 
 if (!interactive()) {
+  find_library()
   main()
 }

@@ -33,5 +33,6 @@ do_run <- function(model, n_registers, block_size, n_particles) {
 
 
 if (!interactive()) {
+  find_library()
   main()
 }
