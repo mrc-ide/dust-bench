@@ -7,12 +7,13 @@ bench_run.R <model> [<n_registers>]" -> usage
   model <- args$model
   if (is.null(opts$n_registers)) {
     res <- timing_run_cpu(model)
-    filename <- sprintf("bench/%s/cpu.rds", model)
+    filename <- sprintf("bench/run/%s/cpu.rds", model)
   } else {
     n_registers <- as.integer(opts$n_registers)
     res <- timing_run_gpu(model, n_registers)
     device_str <- gsub(" ", "-", tolower(res$device[[1]]))
-    filename <- sprintf("bench/%s/%s-%d.rds", model, device_str, n_registers)
+    filename <- sprintf("bench/run/%s/%s-%d.rds",
+                        model, device_str, n_registers)
   }
   dir.create(dirname(filename), FALSE, TRUE)
   saveRDS(res, filename)
@@ -39,9 +40,9 @@ timing_run_gpu <- function(model, n_registers) {
                       n_steps = n_steps,
                       stringsAsFactors = FALSE)
 
-  timing1 <- function(block_size, n_particles, n_steps, device_id = 0L) {
+  timing1 <- function(block_size, n_particles, n_steps) {
     message(sprintf("block_size: %d, n_particles: %d", block_size, n_particles))
-    device_config <- list(device_id = device_id, run_block_size = block_size)
+    device_config <- list(device_id = 0L, run_block_size = block_size)
     mod <- model_run_init(gen, n_particles, device_config)
     res <- mod$run(4, device = TRUE) # burn-in step
     system.time(mod$run(4 + n_steps, device = TRUE))[["elapsed"]]

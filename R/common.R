@@ -127,10 +127,7 @@ create_filter <- function(generator, n_particles, real_data = FALSE,
   if (real_data) {
     dat <- readRDS("data/2021-07-31-london.rds")
     pars <- dat$pars
-    steps_per_day <- pars$steps_per_day
-    initial_step <- 1
-    data <- mcstate::particle_filter_data(dat$data, "date", steps_per_day,
-                                          initial_step)
+    data <- dat$data
   } else {
     start_date <- sircovid::sircovid_date("2020-02-02")
     pars <- sircovid::carehomes_parameters(start_date, "england")

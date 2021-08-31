@@ -53,9 +53,9 @@ model_gpu_create <- function(model, n_registers, clean = FALSE,
 }
 
 
-model_run_init <- function(gen, n_particles, device_config = NULL,
+model_run_init <- function(generator, n_particles, device_config = NULL,
                            n_threads = 10L) {
-  model <- gen$public_methods$name()
+  model <- generator$public_methods$name()
   date <- sircovid::sircovid_date("2020-02-07")
   if (model == "basic") {
     pars <- sircovid::basic_parameters(date, "england")
@@ -63,7 +63,7 @@ model_run_init <- function(gen, n_particles, device_config = NULL,
     pars <- sircovid::carehomes_parameters(date, "england")
   }
 
-  mod <- gen$new(pars, 0, n_particles, seed = 1L, n_threads = n_threads,
+  mod <- generator$new(pars, 0, n_particles, seed = 1L, n_threads = n_threads,
                  device_config = device_config)
 
   info <- mod$info()
@@ -86,4 +86,37 @@ model_run_init <- function(gen, n_particles, device_config = NULL,
   mod$set_state(initial$state, 0)
   mod$set_index(index)
   mod
+}
+
+
+create_filter <- function(generator, n_particles, real_data = FALSE,
+                          device_config = NULL, n_threads = 10L) {
+  if (real_data) {
+    dat <- readRDS("data/2021-07-31-london.rds")
+    pars <- dat$pars
+    data <- dat$data
+  } else {
+    start_date <- sircovid::sircovid_date("2020-02-02")
+    pars <- sircovid::carehomes_parameters(start_date, "england")
+    path <- system.file("extdata/example.csv", package = "sircovid",
+                        mustWork = TRUE)
+    csv <- read.csv(path, stringsAsFactors = FALSE, check.names = FALSE)
+    data <- suppressMessages(
+      sircovid:::carehomes_data(csv, start_date, pars$dt))
+  }
+
+  seed <- 42L
+
+  filter <- mcstate::particle_filter$new(
+    sircovid:::carehomes_particle_filter_data(data),
+    generator,
+    n_particles,
+    compare = NULL,
+    index = sircovid::carehomes_index,
+    initial = sircovid::carehomes_initial,
+    n_threads = n_threads,
+    seed = seed,
+    device_config = device_config)
+
+  list(filter = filter, pars = pars)
 }

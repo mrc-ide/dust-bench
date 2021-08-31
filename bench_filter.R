@@ -1,51 +1,32 @@
-source("R/common.R")
+source("R/new.R")
 
-timing1 <- function(gen, block_size, n_particles, real_data = FALSE,
-                    device_id = 0L) {
-  message(sprintf("block_size: %d, n_particles: %d", block_size, n_particles))
+main <- function(args = commandArgs(TRUE)) {
+  "Usage:
+bench_filter.R [--real-data] <n_registers>" -> usage
+  opts <- docopt::docopt(usage, args)
 
-  dat <- create_filter(gen, n_particles,
-                       real_data = real_data,
-                       device_config = device_config,
-                       n_threads = 10)
-
-  path <- system.file("extdata/example.csv", package = "sircovid",
-                      mustWork = TRUE)
-  start_date <- sircovid::sircovid_date("2020-02-02")
-  pars <- sircovid::carehomes_parameters(start_date, "england")
-  suppressMessages(
-    data <- sircovid:::carehomes_data(read_csv(path), start_date, pars$dt))
-  n_threads <- 10L
-  seed <- 42L
-
-  device_config <- list(device_id = device_id, run_block_size = block_size)
-
-  pf <- mcstate::particle_filter$new(
-    sircovid:::carehomes_particle_filter_data(data),
-    gen,
-    n_particles,
-    compare = NULL,
-    index = sircovid::carehomes_index,
-    initial = sircovid::carehomes_initial,
-    n_threads = n_threads,
-    seed = seed,
-    device_config = device_config)
-
-  ## In order to make this nicer for the gpu, it would be nicer to
-  ## sync the device first. We will however, pay this cost once
-  ## anyway, but this timing likely overstates it a bit. Better might
-  ## be to run it twice?
-  system.time(pf$run(pars))
-  system.time(pf$run(pars))
+  real_data <- opts$real_data
+  data_type <- if (real_data) "real" else "small"
+  if (opts$cpu) {
+    res <- timing_filter_cpu(real_data)
+    filename <- sprintf("bench/filter/%s/cpu.rds", data_type)
+  } else {
+    res <- timing_filter_gpu(real_data, as.integer(opts$n_registers))
+    device_str <- gsub(" ", "-", tolower(res$device[[1]]))
+    filename <- sprintf("bench/filter/%s/%s-%s.rds",
+                        data_type, device_str, opts$n_registers)
+  }
+  dir.create(dirname(filename), FALSE, TRUE)
+  saveRDS(res, filename)
 }
 
 
-timing <- function(n_registers, real_data = FALSE) {
+timing_filter_gpu <- function(real_data, n_registers) {
   n_vacc_classes <- if (real_data) 4L else 1L
-  gen <- carehomes_gpu(n_registers, TRUE, n_vacc_classes)
+  gen <- model_gpu_create("carehomes", n_registers,
+                          n_vacc_classes = n_vacc_classes)
 
   n_particles <- 2^(13:17)
-
   if (n_registers == 96) {
     block_size <- seq(32, 640, by = 32)
   } else {
@@ -58,23 +39,35 @@ timing <- function(n_registers, real_data = FALSE) {
                       block_size = block_size,
                       n_particles = n_particles,
                       stringsAsFactors = FALSE)
-  time <- Map(timing1,
-              list(gen), pars$block_size, pars$n_particles, list(real_data))
-  pars$time <- vapply(time, "[[", numeric(1), "elapsed")
+
+  timing1 <- function(block_size, n_particles) {
+    message(sprintf("block_size: %d, n_particles: %d", block_size, n_particles))
+    device_config <- list(device_id = 0L, run_block_size = block_size)
+    dat <- create_filter(gen, n_particles,
+                         real_data = real_data,
+                         device_config = device_config,
+                         n_threads = 10)
+    system.time(dat$filter$run(dat$pars))
+    system.time(dat$filter$run(dat$pars))[["elapsed"]]
+  }
+
+  time <- Map(timing1, pars$block_size, pars$n_particles)
+  pars$time <- vapply(time, identity, numeric(1))
   pars
 }
 
 
-timing_cpu <- function(real_data) {
+timing_filter_cpu <- function(real_data) {
   timing1 <- function(n_particles, n_threads) {
     dat <- create_filter(sircovid::carehomes, n_particles,
-                         real_data = FALSE,
+                         real_data = real_data,
                          device_config = NULL,
                          n_threads = n_threads)
     system.time(dat$filter$run(dat$pars))[["elapsed"]]
   }
 
   timing5 <- function(n_particles, n_threads) {
+    message(sprintf("n_particles: %d, n_threads: %d", n_particles, n_threads))
     median(replicate(5, timing1(n_particles, n_threads)))
   }
 
@@ -92,23 +85,6 @@ timing_cpu <- function(real_data) {
   pars
 }
 
-
-main <- function(args = commandArgs(TRUE)) {
-  "Usage:
-bench_filter.R <n_registers>
-bench_filter.R --cpu" -> usage
-  opts <- docopt::docopt(usage, args)
-  if (opts$cpu) {
-    res <- timing_cpu()
-    filename <- "bench/filter/cpu.rds"
-  } else {
-    res <- timing(as.integer(opts$n_registers))
-    device_str <- gsub(" ", "-", tolower(res$device[[1]]))
-    filename <- sprintf("bench/filter/%s-%s.rds", device_str, opts$n_registers)
-  }
-  dir.create(dirname(filename), FALSE, TRUE)
-  saveRDS(res, filename)
-}
 
 if (!interactive()) {
   main()
