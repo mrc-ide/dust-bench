@@ -54,7 +54,13 @@ We know that our timings are highly dependent on register usage, and changing th
 
 Each experiment has two components:
 
-* `bench_<name>.R` - top level benchmarking, timing how long it takes to launch the kernel and get data back to R. This includes potentially a number of overheads in addition to the actual kernel run, but we can explore lots of combinations of block sizes and particles quickly. Results will be saved into `bench/<experiment>/<device>-<registers>.rds` and can be read with a corresponding `read_<name>.R` script.
+**Basic benchmarking**: `bench_<name>.R` (e.g., `bench_basic.R`).  This times how long it takes to launch the kernel and get data back to R. This includes potentially a number of overheads in addition to the actual kernel run, but we can explore lots of combinations of block sizes and particles quickly. Results will be saved into `bench/<experiment>/<device>-<registers>.rds` and can be read with a corresponding `read_<name>.R` script.  The script takes the number of registers to use as its only argument.  Run with, for example
+
+```
+Rscript bench_basic.R 96
+```
+
+
 * `profile_<name>.R` - profiling with `ncu` to get detailed information back about the kernel. You need to specify the number of registers, block size and number of particles here.  We use a small bash function to help with this, used as `dust_profile <experiment> <registers> <block_size> <particles>`
 
 ```bash

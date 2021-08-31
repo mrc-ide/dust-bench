@@ -1,7 +1,14 @@
 source("R/common.R")
 
-timing1 <- function(gen, block_size, n_particles, device_id = 0L) {
+timing1 <- function(gen, block_size, n_particles, real_data = FALSE,
+                    device_id = 0L) {
   message(sprintf("block_size: %d, n_particles: %d", block_size, n_particles))
+
+  dat <- create_filter(gen, n_particles,
+                       real_data = real_data,
+                       device_config = device_config,
+                       n_threads = 10)
+
   path <- system.file("extdata/example.csv", package = "sircovid",
                       mustWork = TRUE)
   start_date <- sircovid::sircovid_date("2020-02-02")
@@ -33,8 +40,9 @@ timing1 <- function(gen, block_size, n_particles, device_id = 0L) {
 }
 
 
-timing <- function(n_registers) {
-  gen <- carehomes_gpu(n_registers, TRUE)
+timing <- function(n_registers, real_data = FALSE) {
+  n_vacc_classes <- if (real_data) 4L else 1L
+  gen <- carehomes_gpu(n_registers, TRUE, n_vacc_classes)
 
   n_particles <- 2^(13:17)
 
@@ -51,32 +59,19 @@ timing <- function(n_registers) {
                       n_particles = n_particles,
                       stringsAsFactors = FALSE)
   time <- Map(timing1,
-              list(gen), pars$block_size, pars$n_particles)
+              list(gen), pars$block_size, pars$n_particles, list(real_data))
   pars$time <- vapply(time, "[[", numeric(1), "elapsed")
   pars
 }
 
 
-timing_cpu <- function() {
-  start_date <- sircovid::sircovid_date("2020-02-02")
-  p <- sircovid::carehomes_parameters(start_date, "england")
-  path <- system.file("extdata/example.csv", package = "sircovid",
-                      mustWork = TRUE)
-  suppressMessages(
-    data <- sircovid:::carehomes_data(read_csv(path), start_date, p$dt))
-
+timing_cpu <- function(real_data) {
   timing1 <- function(n_particles, n_threads) {
-    seed <- 42L
-    pf <- mcstate::particle_filter$new(
-      sircovid:::carehomes_particle_filter_data(data),
-      sircovid::carehomes,
-      n_particles,
-      compare = NULL,
-      index = sircovid::carehomes_index,
-      initial = sircovid::carehomes_initial,
-      n_threads = n_threads,
-      seed = seed)
-    system.time(pf$run(p))[["elapsed"]]
+    dat <- create_filter(sircovid::carehomes, n_particles,
+                         real_data = FALSE,
+                         device_config = NULL,
+                         n_threads = n_threads)
+    system.time(dat$filter$run(dat$pars))[["elapsed"]]
   }
 
   timing5 <- function(n_particles, n_threads) {
@@ -98,7 +93,6 @@ timing_cpu <- function() {
 }
 
 
-## Due to a limitation in dust's caching
 main <- function(args = commandArgs(TRUE)) {
   "Usage:
 bench_filter.R <n_registers>

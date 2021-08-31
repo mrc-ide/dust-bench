@@ -58,7 +58,7 @@ carehomes_init <- function(gen, block_size, n_particles, device_id = 0L,
   }
 
   mod <- gen$new(p, 0, n_particles, seed = 1L, n_threads = n_threads,
-                   device_config = device)
+                 device_config = device)
 
   end <- sircovid::sircovid_date("2020-07-31") / p$dt
   info <- mod$info()
@@ -119,6 +119,41 @@ basic_init <- function(gen, block_size, n_particles, device_id = 0L) {
   mod$set_state(initial$state, 0)
   mod$set_index(sircovid::basic_index(info)$run)
   mod
+}
+
+
+create_filter <- function(generator, n_particles, real_data = FALSE,
+                          device_config = NULL, n_threads = 10L) {
+  if (real_data) {
+    dat <- readRDS("data/2021-07-31-london.rds")
+    pars <- dat$pars
+    steps_per_day <- pars$steps_per_day
+    initial_step <- 1
+    data <- mcstate::particle_filter_data(dat$data, "date", steps_per_day,
+                                          initial_step)
+  } else {
+    start_date <- sircovid::sircovid_date("2020-02-02")
+    pars <- sircovid::carehomes_parameters(start_date, "england")
+    path <- system.file("extdata/example.csv", package = "sircovid",
+                        mustWork = TRUE)
+    data <- suppressMessages(
+      sircovid:::carehomes_data(read_csv(path), start_date, pars$dt))
+  }
+
+  seed <- 42L
+
+  filter <- mcstate::particle_filter$new(
+    sircovid:::carehomes_particle_filter_data(data),
+    generator,
+    n_particles,
+    compare = NULL,
+    index = sircovid::carehomes_index,
+    initial = sircovid::carehomes_initial,
+    n_threads = n_threads,
+    seed = seed,
+    device_config = device_config)
+
+  list(filter = filter, pars = pars)
 }
 
 
