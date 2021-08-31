@@ -42,7 +42,7 @@ timing_run_gpu <- function(model, n_registers) {
   timing1 <- function(block_size, n_particles, n_steps, device_id = 0L) {
     message(sprintf("block_size: %d, n_particles: %d", block_size, n_particles))
     device_config <- list(device_id = device_id, run_block_size = block_size)
-    mod <- model_init(gen, n_particles, device_config)
+    mod <- model_run_init(gen, n_particles, device_config)
     res <- mod$run(4, device = TRUE) # burn-in step
     system.time(mod$run(4 + n_steps, device = TRUE))[["elapsed"]]
   }
@@ -60,7 +60,7 @@ timing_run_cpu <- function(model) {
                 stop(sprintf("Unknown model '%s'", model)))
 
   timing1 <- function(n_particles, n_threads) {
-    mod <- model_init(gen, n_particles, NULL, n_threads)
+    mod <- model_run_init(gen, n_particles, NULL, n_threads)
     res <- mod$run(4)
     n_steps <- 4L
     end <- 4 + n_steps
@@ -84,6 +84,42 @@ timing_run_cpu <- function(model) {
              n_particles = pars$n_particles, n_threads = pars$n_threads)
   pars$time <- vapply(res, identity, numeric(1))
   pars
+}
+
+
+model_run_init <- function(gen, n_particles, device_config = NULL,
+                           n_threads = 10L) {
+  model <- gen$public_methods$name()
+  date <- sircovid::sircovid_date("2020-02-07")
+  if (model == "basic") {
+    pars <- sircovid::basic_parameters(date, "england")
+  } else {
+    pars <- sircovid::carehomes_parameters(date, "england")
+  }
+
+  mod <- gen$new(pars, 0, n_particles, seed = 1L, n_threads = n_threads,
+                 device_config = device_config)
+
+  info <- mod$info()
+
+  if (model == "basic") {
+    initial <- sircovid::basic_initial(info, n_particles, pars)
+    index <- sircovid::basic_index(info)$run
+  } else {
+    initial <- sircovid::carehomes_initial(info, n_particles, pars)
+    index <- c(sircovid::carehomes_index(info)$run,
+               deaths_carehomes = info$index[["D_carehomes_tot"]],
+               deaths_comm = info$index[["D_comm_tot"]],
+               deaths_hosp = info$index[["D_hosp_tot"]],
+               admitted = info$index[["cum_admit_conf"]],
+               diagnoses = info$index[["cum_new_conf"]],
+               sympt_cases = info$index[["cum_sympt_cases"]],
+               sympt_cases_over25 = info$index[["cum_sympt_cases_over25"]])
+  }
+
+  mod$set_state(initial$state, 0)
+  mod$set_index(index)
+  mod
 }
 
 
