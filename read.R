@@ -1,0 +1,6 @@
+library(ggplot2)
+source("R/plot.R")
+save_plots("bench/run/basic")
+save_plots("bench/run/carehomes")
+save_plots("bench/filter/small")
+save_plots("bench/filter/real")
