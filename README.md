@@ -90,3 +90,19 @@ Create plots
 ```
 Rscript create_plots.R
 ```
+
+## Visualising profile results
+
+```
+scp -r -C john:dust-bench/profile .
+scp -r -C hpc-gpu-1:dust-bench/profile .
+scp -r -C hpc-gpu-2:dust-bench/profile .
+```
+
+If working within this repo, the profiles are gziped and need to be inflated before loading, run:
+
+```
+find profile -name '*.ncu-rep.gz' -exec gunzip -k {} \;
+```
+
+Then, open `/usr/local/NVIDIA-Nsight-Compute/ncu-ui` or wherever `ncu-ui` has been hidden as, and open up a set of profiles to compare.

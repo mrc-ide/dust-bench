@@ -4,3 +4,4 @@ profile/
 data/
 lib/
 figures/
+*.ncu-rep
