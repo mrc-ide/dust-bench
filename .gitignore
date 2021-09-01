@@ -1,8 +1,5 @@
 src/
-bench/
-profile/
 data/
 lib/
-figures/
 *.ncu-rep
-profile.old
+*.old
