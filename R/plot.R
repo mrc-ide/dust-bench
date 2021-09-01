@@ -8,20 +8,19 @@ read_data <- function(path) {
     ret
   }
 
-  dat_gpu <- read_files(files[!is_cpu])
-  dat_cpu <- read_files(files[is_cpu])
-  dat_cpu$label <- sprintf("%s: %d", dat_cpu$device, dat_cpu$n_threads)
-
-  list(cpu = dat_cpu, gpu = dat_gpu)
+  list(cpu = read_files(files[is_cpu]),
+       gpu = read_files(files[!is_cpu]))
 }
 
 
 make_plot <- function(dat) {
   ## Need a small data set here with the cpu information to work with
   ## the way that ggplot wants annotations
+  dat$cpu$n_threads[dat$cpu$n_threads > 10] <- "all"
+  cpu_time <- tapply(dat$cpu$time_rel, dat$cpu$n_threads, min)
   cpu_label <- data.frame(block_size = 1024,
-                          time_rel = dat$cpu$time_rel,
-                          label = dat$cpu$label,
+                          time_rel = unname(cpu_time),
+                          label = sprintf("cpu: %s", names(cpu_time)),
                           n_registers = 0)
 
   p_gpu <-
