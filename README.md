@@ -123,6 +123,18 @@ dust_kernel_profile run carehomes 256        256         65536
 
 </details>
 
+The system profile is less interesting here but can be run in the same way with `dust_system_profile`.
+
+<details>
+<summary>All profiles</summary>
+
+```sh
+#                                registers  block_size  particles
+dust_system_profile filter small 96         128         65536
+```
+
+</details>
+
 ## Visualising benchmark results
 
 Pull results back from the 3 servers
@@ -155,9 +167,4 @@ find profile -name '*.ncu-rep.gz' -exec gunzip -k {} \;
 
 Then, open `/usr/local/NVIDIA-Nsight-Compute/ncu-ui` or wherever `ncu-ui` has been hidden as, and open up a set of profiles to compare.
 
-## System profiling
-
-```
-. helper.sh
-dust_system_profile filter small 96 128 65536
-```
+For the system profiles, open `nsys-ui` (perhaps at `/opt/nvidia/nsight-systems/2021.2.1/bin/nsys-ui` or similar) and open the trace. These are less massive so are not compressed.
