@@ -95,7 +95,7 @@ Rscript bench_filter.R real 256
 
 ## Profile
 
-We use `ncu` to get detailed information back about the kernel. These run fairly quickly but if you run too many then they're annoying to organise.  We use a little helper bash function within `helpers.sh` to make running and storing these a little less tedious. This takes arguments `dust_profile <experiment> <type> <registers> <block_size> <particles>`
+We use `ncu` to get detailed information back about the kernel. These run fairly quickly but if you run too many then they're annoying to organise.  We use a little helper bash function within `helpers.sh` to make running and storing these a little less tedious. This takes arguments `dust_kernel_profile <experiment> <type> <registers> <block_size> <particles>`
 
 Where `experiment` is one of `run` or `filter` and `type` is one of either `basic`/`carehomes` or `small`/`real`.
 
@@ -103,22 +103,22 @@ For example, to profile the `run` experiment with the `carehomes` models with 96
 
 ```
 . helper.sh
-dust_profile run carehomes 96 128 65536
+dust_kernel_profile run carehomes 96 128 65536
 ```
 
 <details>
 <summary>All profiles</summary>
 
 ```sh
-#                          registers  block_size  particles
-dust_profile run carehomes 64         512         65536
-dust_profile run carehomes 96         512         65536
-dust_profile run carehomes 128        512         65536
+#                                 registers  block_size  particles
+dust_kernel_profile run carehomes 64         512         65536
+dust_kernel_profile run carehomes 96         512         65536
+dust_kernel_profile run carehomes 128        512         65536
 
-dust_profile run carehomes 64         256         65536
-dust_profile run carehomes 96         256         65536
-dust_profile run carehomes 128        256         65536
-dust_profile run carehomes 256        256         65536
+dust_kernel_profile run carehomes 64         256         65536
+dust_kernel_profile run carehomes 96         256         65536
+dust_kernel_profile run carehomes 128        256         65536
+dust_kernel_profile run carehomes 256        256         65536
 ```
 
 </details>
@@ -154,3 +154,10 @@ find profile -name '*.ncu-rep.gz' -exec gunzip -k {} \;
 ```
 
 Then, open `/usr/local/NVIDIA-Nsight-Compute/ncu-ui` or wherever `ncu-ui` has been hidden as, and open up a set of profiles to compare.
+
+## System profiling
+
+```
+. helper.sh
+dust_system_profile filter small 96 128 65536
+```
