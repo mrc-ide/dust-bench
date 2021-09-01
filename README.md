@@ -11,7 +11,6 @@ Consumer
 * Dual Xeon 6230 (40 cores @ 2.10GHZ)
 * 754GB RAM
 * GeForce RTX 3090
-* GeForce RTX 2080 Ti
 
 A100
 
@@ -41,83 +40,53 @@ source("R/common.R")
 build_library()
 ```
 
+## Experiments
+
+We have 4 experiments tested here, in two groups of two.
+
+The "run" benchmarks run a model forward in time by one day (4 steps), which is the basic timescale that we run the model with. We do this for the `basic` model, which is an example of a nontrivial but tractable odin model, and for the `carehomes` model, which is a large model that is currently under development.
+
+The "filter" benchmarks run the `carehomes` model in a particle filter either with a small example data set (covering a few weeks) or with a much longer time series covering ~18 months of the epidemic.  These greatly increase the shared memory requirement for the kernels.
+
 ## Benchmarks
 
-We have 4 benchmarks tested here:
-
-* "basic": run the sircovid `basic` model forward in time by one day (4 steps). This is the most basic version of any sircovid model, uses the least amount of shared memory, focusses only on the run kernel. This is to show the effect of a fairly complicated but still somewhat understandable kernel where hand-optimisation might be possible.
-* "carehomes": run the sircovid carehomes model forward in time by one day (4 steps). This is the most basic version of the main sircovid model, and does not include vaccination or strains which are now used in production.
-* "data"
-* "filter"
-
-We know that our timings are highly dependent on register usage, and changing that requires recompiling the model. So each script takes as an argument a number of registers and varies a set of additional parameters.  We use 64, 96, 128 and 256 registers in these experiments.
-
-Each experiment has two components:
-
-**Basic benchmarking**: `bench_<name>.R` (e.g., `bench_basic.R`).  This times how long it takes to launch the kernel and get data back to R. This includes potentially a number of overheads in addition to the actual kernel run, but we can explore lots of combinations of block sizes and particles quickly. Results will be saved into `bench/<experiment>/<device>-<registers>.rds` and can be read with a corresponding `read_<name>.R` script.  The script takes the number of registers to use as its only argument.  Run with, for example
+The benchmarks times how long it takes to launch the kernel (or in the case of the filter a series of kernels) and get data back to R. This includes potentially a number of overheads in addition to the actual kernel run, but we can explore lots of combinations of block sizes and particles quickly. Results will be saved into `bench/<experiment>/<device>-<registers>.rds`.  The script takes the type of run and the number of registers to use as its arguments. For example to run the "run" benchmark with the carehomes model and 96 registers, run:
 
 ```
-Rscript bench_basic.R 96
+Rscript bench_run.R carehomes 96
 ```
 
+or to run the filter benchmark with the small data set and 128 registers:
 
-* `profile_<name>.R` - profiling with `ncu` to get detailed information back about the kernel. You need to specify the number of registers, block size and number of particles here.  We use a small bash function to help with this, used as `dust_profile <experiment> <registers> <block_size> <particles>`
+```
+Rscript bench_filter.R small 128
+```
 
-```bash
+## Profile
+
+We use `ncu` to get detailed information back about the kernel. These run fairly quickly but if you run too many then they're annoying to organise.  We use a little helper bash function within `helpers.sh` to make running and storing these a little less tedious. This takes arguments `dust_profile <experiment> <type> <registers> <block_size> <particles>`
+
+Where `experiment` is one of `run` or `filter` and `type` is one of either `basic`/`carehomes` or `small`/`real`.
+
+For example, to profile the `run` experiment with the `carehomes` models with 96 registers, block size of 128 and 65536 (2^16) particles, run:
+
+```
 . helper.sh
-dust_profile basic 64 512 65536
+dust_profile run carehomes 96 128 65536
 ```
 
+## Visualising benchmark results
 
+Pull results back from the 3 servers
 
-
-ncu -o profile/run/$DEVICE-64-512-65536 \
-  --kernel-id ::run_particles:2  --set full --target-processes all \
-  Rscript profile_carehomes.R \
-  --n-registers=64 --block-size=512 --n-particles=65536
-ncu -o profile/run/$DEVICE-64-512-65536 \
-  --kernel-id ::run_particles:2  --set full --target-processes all \
-  Rscript profile_carehomes.R \
-  --n-registers=64 --block-size=512 --n-particles=65536
-ncu -o profile/run/$DEVICE-64-512-65536 \
-  --kernel-id ::run_particles:2  --set full --target-processes all \
-  Rscript profile_carehomes.R \
-  --n-registers=64 --block-size=512 --n-particles=65536
-ncu -o profile/run/$DEVICE-64-512-65536 \
-  --kernel-id ::run_particles:2  --set full --target-processes all \
-  Rscript profile_carehomes.R \
-  --n-registers=64 --block-size=512 --n-particles=65536
+```
+scp -r john:dust-bench/bench .
+scp -r hpc-gpu-1:dust-bench/bench .
+scp -r hpc-gpu-2:dust-bench/bench .
 ```
 
+Create plots
 
-
-To benchmark on 96 registers
-
-
-ncu -o profile/run/$DEVICE-64-512-65536 \
-  --kernel-id ::run_particles:2  --set full --target-processes all \
-  Rscript profile_run.R --n-registers=64 --block-size=512 --n-particles=65536
-ncu -o profile/run/$DEVICE-96-512-65536 \
-  --kernel-id ::run_particles:2  --set full --target-processes all \
-  Rscript profile_run.R --n-registers=96 --block-size=512 --n-particles=65536
-ncu -o profile/run/$DEVICE-128-512-65536 \
-  --kernel-id ::run_particles:2  --set full --target-processes all \
-  Rscript profile_run.R --n-registers=128 --block-size=512 --n-particles=65536
-ncu -o profile/run/$DEVICE-256-256-65536 \
-  --kernel-id ::run_particles:2  --set full --target-processes all \
-  Rscript profile_run.R --n-registers=256 --block-size=256 --n-particles=65536
-
-ncu -o profile/run/$DEVICE-64-256-65536 \
-  --kernel-id ::run_particles:2  --set full --target-processes all \
-  Rscript profile_run.R --n-registers=64 --block-size=256 --n-particles=65536
-ncu -o profile/run/$DEVICE-96-256-65536 \
-  --kernel-id ::run_particles:2  --set full --target-processes all \
-  Rscript profile_run.R --n-registers=96 --block-size=256 --n-particles=65536
-ncu -o profile/run/$DEVICE-128-256-65536 \
-  --kernel-id ::run_particles:2  --set full --target-processes all \
-  Rscript profile_run.R --n-registers=128 --block-size=256 --n-particles=65536
-
-nsys profile -o profile/data/$DEVICE-128-256-65536 \
-  -c cudaProfilerApi --trace cuda,osrt,openmp \
-  Rscript profile_data.R --n-registers=128 --block-size=256 --n-particles=65536
+```
+Rscript create_plots.R
 ```
