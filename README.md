@@ -62,6 +62,37 @@ or to run the filter benchmark with the small data set and 128 registers:
 Rscript bench_filter.R small 128
 ```
 
+<details>
+<summary>All runs</summary>
+
+```sh
+Rscript bench_run.R basic
+Rscript bench_run.R basic 64
+Rscript bench_run.R basic 96
+Rscript bench_run.R basic 128
+Rscript bench_run.R basic 256
+
+Rscript bench_run.R carehomes
+Rscript bench_run.R carehomes 64
+Rscript bench_run.R carehomes 96
+Rscript bench_run.R carehomes 128
+Rscript bench_run.R carehomes 256
+
+Rscript bench_filter.R small
+Rscript bench_filter.R small 64
+Rscript bench_filter.R small 96
+Rscript bench_filter.R small 128
+Rscript bench_filter.R small 256
+
+Rscript bench_filter.R real
+Rscript bench_filter.R real 64
+Rscript bench_filter.R real 96
+Rscript bench_filter.R real 128
+Rscript bench_filter.R real 256
+```
+
+</details>
+
 ## Profile
 
 We use `ncu` to get detailed information back about the kernel. These run fairly quickly but if you run too many then they're annoying to organise.  We use a little helper bash function within `helpers.sh` to make running and storing these a little less tedious. This takes arguments `dust_profile <experiment> <type> <registers> <block_size> <particles>`
@@ -74,6 +105,23 @@ For example, to profile the `run` experiment with the `carehomes` models with 96
 . helper.sh
 dust_profile run carehomes 96 128 65536
 ```
+
+<details>
+<summary>All profiles</summary>
+
+```sh
+#                          registers  block_size  particles
+dust_profile run carehomes 64         512         65536
+dust_profile run carehomes 96         512         65536
+dust_profile run carehomes 128        512         65536
+
+dust_profile run carehomes 64         256         65536
+dust_profile run carehomes 96         256         65536
+dust_profile run carehomes 128        256         65536
+dust_profile run carehomes 256        256         65536
+```
+
+</details>
 
 ## Visualising benchmark results
 
