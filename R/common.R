@@ -120,3 +120,13 @@ create_filter <- function(generator, n_particles, data_type = "small",
 
   list(filter = filter, pars = pars)
 }
+
+
+cpuname <- function(clean) {
+  dat <- jsonlite::fromJSON(system2("lscpu", "-J", stdout = TRUE))$lscpu
+  model <- dat$data[dat$field == "Model name:"]
+  if (clean) {
+    model <- tolower(gsub(" +", "-", gsub("(\\(.+\\)|@)", "", model)))
+  }
+  model
+}

@@ -7,7 +7,7 @@ bench_run.R <model> [<n_registers>]" -> usage
   model <- opts$model
   if (is.null(opts$n_registers)) {
     res <- timing_run_cpu(model)
-    filename <- sprintf("bench/run/%s/cpu.rds", model)
+    filename <- sprintf("bench/run/%s/cpu-%s.rds", model, cpuname(TRUE))
   } else {
     n_registers <- as.integer(opts$n_registers)
     res <- timing_run_gpu(model, n_registers)
@@ -80,6 +80,7 @@ timing_run_cpu <- function(model) {
     n_threads = n_threads,
     n_particles_per_thread = n_particles_per_thread)
   pars$n_particles <- pars$n_threads * pars$n_particles_per_thread
+  pars$device <- cpuname(FALSE)
 
   res <- Map(timing5,
              n_particles = pars$n_particles, n_threads = pars$n_threads)
