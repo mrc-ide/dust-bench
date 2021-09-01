@@ -76,11 +76,10 @@ timing_run_cpu <- function(model) {
   n_threads <- unique(c(1L, 10L, parallel::detectCores() / 2))
   n_particles_per_thread <- 500L
   pars <- expand.grid(
-    device = "cpu",
+    device = cpuname(FALSE),
     n_threads = n_threads,
     n_particles_per_thread = n_particles_per_thread)
   pars$n_particles <- pars$n_threads * pars$n_particles_per_thread
-  pars$device <- cpuname(FALSE)
 
   res <- Map(timing5,
              n_particles = pars$n_particles, n_threads = pars$n_threads)

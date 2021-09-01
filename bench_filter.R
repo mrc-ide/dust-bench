@@ -8,7 +8,7 @@ bench_filter.R <data_type> [<n_registers>]" -> usage
   data_type <- opts$data_type
   if (is.null(opts$n_registers)) {
     res <- timing_filter_cpu(data_type)
-    filename <- sprintf("bench/filter/%s/cpu.rds", data_type)
+    filename <- sprintf("bench/filter/%s/cpu-%s.rds", data_type, cpuname(TRUE))
   } else {
     res <- timing_filter_gpu(data_type, as.integer(opts$n_registers))
     device_str <- gsub(" ", "-", tolower(res$device[[1]]))
@@ -73,7 +73,7 @@ timing_filter_cpu <- function(data_type) {
   n_threads <- unique(c(1L, 10L, parallel::detectCores() / 2))
   n_particles_per_thread <- 100L
   pars <- expand.grid(
-    device = "cpu",
+    device = cpuname(FALSE),
     n_threads = n_threads,
     n_particles_per_thread = n_particles_per_thread)
   pars$n_particles <- pars$n_threads * pars$n_particles_per_thread
